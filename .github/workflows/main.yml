@@ -1,0 +1,206 @@
+name: Update Lunar Calendars
+
+on:
+  pull_request:
+    paths:
+      - '**/*.py'
+      - 'src/*.json'
+      - 'tests/**'
+      - '**/README*.md'
+      - 'docs/**'
+      - '**/calendar.config.json'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - '.gitleaks.toml'
+      - 'SECURITY.md'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.py'
+      - 'src/*.json'
+      - 'tests/**'
+      - '**/README*.md'
+      - 'docs/**'
+      - '**/calendar.config.json'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - '.gitleaks.toml'
+      - 'SECURITY.md'
+      - '.github/workflows/**'
+  schedule:
+    - cron: '17 0 1 1 *' # January 1, 07:17 Vietnam time; avoid the busy hour boundary
+  workflow_dispatch:
+    inputs:
+      custom_config:
+        description: 'Optional committed JSON config path (overrides CUSTOM_CONFIG for this run)'
+        required: false
+        type: string
+      force_rebuild:
+        description: 'Force regression checks and generation even when current'
+        default: false
+        type: boolean
+      verify_browser:
+        description: 'Run browser consumer checks and capture screenshots'
+        default: false
+        type: boolean
+
+concurrency:
+  group: lunar-calendars-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      feeds_changed: ${{ steps.changes.outputs.changed }}
+    env:
+      CUSTOM_CONFIG: ${{ inputs.custom_config || vars.CUSTOM_CONFIG }}
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Check whether feed generation is needed
+        id: freshness
+        shell: bash
+        run: |
+          args=()
+          if [ -n "$CUSTOM_CONFIG" ]; then args+=(--custom-config "$CUSTOM_CONFIG"); fi
+          if python3 src/release_state.py --check "${args[@]}"; then
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Decide whether to verify
+        id: work
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          NEEDED: ${{ steps.freshness.outputs.needed }}
+          FORCE: ${{ inputs.force_rebuild }}
+          BROWSER: ${{ inputs.verify_browser }}
+        run: |
+          if [ "$NEEDED" = true ] || [ "$FORCE" = true ] || [ "$BROWSER" = true ] || [ "$EVENT_NAME" = pull_request ] || [ "$EVENT_NAME" = push ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo 'Feeds current: dependency installation, generation, artifacts and commits skipped.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        if: steps.work.outputs.run == 'true'
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install pinned runtime dependencies
+        if: steps.work.outputs.run == 'true'
+        run: |
+          python -m pip install --require-hashes -r requirements-bootstrap.txt --disable-pip-version-check
+          python -m pip install --require-hashes --no-build-isolation -r requirements.txt --disable-pip-version-check
+      - name: Install isolated pinned audit tools
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          python -m venv .dependency-cache/security-venv
+          .dependency-cache/security-venv/bin/python -m pip install --require-hashes -r requirements-bootstrap.txt --disable-pip-version-check
+          .dependency-cache/security-venv/bin/python -m pip install --require-hashes -r requirements-dev.txt --disable-pip-version-check
+      - name: Enforce clean code and check dependency advisories
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          tools=.dependency-cache/security-venv/bin
+          "$tools/ruff" check src tests main.py generate_all.py
+          "$tools/ruff" format --check src tests main.py generate_all.py
+          "$tools/bandit" -r src main.py generate_all.py -q
+          runtime=$(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
+          "$tools/pip-audit" --path "$runtime"
+      - name: Validate workflow syntax and permission expressions
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          mkdir -p .dependency-cache/actionlint
+          archive=.dependency-cache/actionlint/tool.tar.gz
+          curl --fail --location --retry 2 --output "$archive" https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $archive" | sha256sum --check
+          tar -xzf "$archive" -C .dependency-cache/actionlint actionlint
+          .dependency-cache/actionlint/actionlint
+      - name: Scan source for leaked credentials
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: |
+          mkdir -p .dependency-cache/gitleaks
+          archive=.dependency-cache/gitleaks/tool.tar.gz
+          curl --fail --location --retry 2 --output "$archive" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $archive" | sha256sum --check
+          tar -xzf "$archive" -C .dependency-cache/gitleaks gitleaks
+          .dependency-cache/gitleaks/gitleaks dir --redact=100 --no-banner --config .gitleaks.toml .
+      - name: Run regression and documentation checks
+        if: steps.work.outputs.run == 'true'
+        run: python -m unittest discover -s tests -v
+      - name: Build and validate candidate feeds
+        if: steps.work.outputs.run == 'true'
+        env:
+          FORCE: ${{ inputs.force_rebuild }}
+        run: |
+          args=()
+          if [ -n "$CUSTOM_CONFIG" ]; then args+=(--custom-config "$CUSTOM_CONFIG"); fi
+          if [ "$FORCE" != true ]; then args+=(--if-needed); fi
+          python generate_all.py "${args[@]}"
+      - name: Detect changed generated files
+        id: changes
+        if: steps.work.outputs.run == 'true'
+        run: |
+          if [ -n "$(git status --porcelain -- output/)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Upload candidate feeds for review
+        if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && steps.work.outputs.run == 'true') || (github.ref == 'refs/heads/main' && steps.changes.outputs.changed == 'true')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: lunar-calendar-candidates
+          path: output/
+          include-hidden-files: true
+          retention-days: 3
+
+  publish:
+    needs: verify-and-build
+    if: needs.verify-and-build.outputs.feeds_changed == 'true' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.PUBLISH_LUNAR_FEEDS == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: lunar-calendar-candidates
+          path: candidate/
+      - name: Verify artifact checksums and publish atomically
+        env:
+          CUSTOM_CONFIG: ${{ inputs.custom_config || vars.CUSTOM_CONFIG }}
+        run: |
+          args=()
+          if [ -n "$CUSTOM_CONFIG" ]; then args+=(--custom-config "$CUSTOM_CONFIG"); fi
+          python3 src/publish_release.py --staging candidate --output-dir output "${args[@]}"
+      - name: Commit only generated changes on the verified main revision
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo 'A newer main revision exists; its workflow will publish the current release.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git add -A output/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update verified lunar calendar feeds"
+            git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push
+          fi

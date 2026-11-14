@@ -1,0 +1,142 @@
+[
+  {
+    "countries": [
+      "CN"
+    ],
+    "tradition": "chinese",
+    "language": "zh-Hans",
+    "content": "festivals",
+    "legacy": false,
+    "start_year": 2026,
+    "end_year": 2027,
+    "supported_end_year": 2099,
+    "events": 28,
+    "file": "lunar_cn_chinese_zh-Hans_festivals_latest.ics",
+    "sha256": "ced685f26ef1d8f5297e18f674663cc8715a578a0cf05bc7fcdc849504de84d5",
+    "sources": [
+      "https://www.hko.gov.hk/en/gts/time/conversion.htm"
+    ],
+    "date_status": "calculated-traditional-observance",
+    "app_subscription_tested": false
+  },
+  {
+    "countries": [
+      "CN"
+    ],
+    "tradition": "chinese",
+    "language": "zh-Hans",
+    "content": "observances",
+    "legacy": false,
+    "start_year": 2026,
+    "end_year": 2027,
+    "supported_end_year": 2099,
+    "events": 70,
+    "file": "lunar_cn_chinese_zh-Hans_observances_latest.ics",
+    "sha256": "1997c48a2e6e43d8158772ed6693b2034256dc1e583a64b8c0ef77a72046bbe8",
+    "sources": [
+      "https://www.hko.gov.hk/en/gts/time/conversion.htm"
+    ],
+    "date_status": "calculated-traditional-observance",
+    "app_subscription_tested": false
+  },
+  {
+    "countries": [
+      "CN"
+    ],
+    "tradition": "chinese",
+    "language": "zh-Hans",
+    "content": "daily",
+    "legacy": false,
+    "start_year": 2026,
+    "end_year": 2027,
+    "supported_end_year": 2099,
+    "events": 730,
+    "file": "lunar_cn_chinese_zh-Hans_daily_latest.ics",
+    "sha256": "c12b0fb3746efb2c3ad7a97ef72a62bf827e92e55d7cf9652904e127b556a774",
+    "sources": [
+      "https://www.hko.gov.hk/en/gts/time/conversion.htm"
+    ],
+    "date_status": "calculated-traditional-observance",
+    "app_subscription_tested": false
+  },
+  {
+    "countries": [
+      "CN"
+    ],
+    "tradition": "chinese",
+    "language": "en",
+    "content": "festivals",
+    "legacy": false,
+    "start_year": 2026,
+    "end_year": 2027,
+    "supported_end_year": 2099,
+    "events": 28,
+    "file": "lunar_cn_chinese_en_festivals_latest.ics",
+    "sha256": "8e68687fc2f3785da754dc8042109c9d4fa983104346c71dcdbd34ba906b4325",
+    "sources": [
+      "https://www.hko.gov.hk/en/gts/time/conversion.htm"
+    ],
+    "date_status": "calculated-traditional-observance",
+    "app_subscription_tested": false
+  },
+  {
+    "countries": [
+      "CN"
+    ],
+    "tradition": "chinese",
+    "language": "en",
+    "content": "observances",
+    "legacy": false,
+    "start_year": 2026,
+    "end_year": 2027,
+    "supported_end_year": 2099,
+    "events": 70,
+    "file": "lunar_cn_chinese_en_observances_latest.ics",
+    "sha256": "ada13b76d97b5ed09ab95f34196aa28e2cce0de002ca3cbfe629b7c378e61ab3",
+    "sources": [
+      "https://www.hko.gov.hk/en/gts/time/conversion.htm"
+    ],
+    "date_status": "calculated-traditional-observance",
+    "app_subscription_tested": false
+  },
+  {
+    "countries": [
+      "CN"
+    ],
+    "tradition": "chinese",
+    "language": "en",
+    "content": "daily",
+    "legacy": false,
+    "start_year": 2026,
+    "end_year": 2027,
+    "supported_end_year": 2099,
+    "events": 730,
+    "file": "lunar_cn_chinese_en_daily_latest.ics",
+    "sha256": "a7a8df0aff8215e0b6137cb21c7456fec6dc286637d929a7a8253e74435d80cd",
+    "sources": [
+      "https://www.hko.gov.hk/en/gts/time/conversion.htm"
+    ],
+    "date_status": "calculated-traditional-observance",
+    "app_subscription_tested": false
+  },
+  {
+    "countries": [
+      "CN"
+    ],
+    "tradition": "chinese",
+    "language": "zh-Hans",
+    "content": "legacy-daily",
+    "legacy": true,
+    "start_year": 2026,
+    "end_year": 2027,
+    "supported_end_year": 2099,
+    "events": 730,
+    "file": "chinese_lunar_latest.ics",
+    "sha256": "02f6053fe3a4231f033762ac89f0e4daee475365990f4077067ff8e1ea0898fa",
+    "sources": [
+      "https://www.hko.gov.hk/en/gts/time/conversion.htm"
+    ],
+    "date_status": "calculated-traditional-observance",
+    "app_subscription_tested": false
+  }
+]

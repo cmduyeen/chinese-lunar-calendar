@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Third-party dependency environments and Git internals"
+paths = ['(^|[\\/])(\.git|\.venv|\.dependency-cache|node_modules)([\\/]|$)']

@@ -1,0 +1,14 @@
+{
+  "schema": 2,
+  "fingerprint": "e2a9a3e2162135ff5bec10408db69390923edaa9a2d635f376aa047d8a2a0af4",
+  "files": {
+    "chinese_lunar_latest.ics": "02f6053fe3a4231f033762ac89f0e4daee475365990f4077067ff8e1ea0898fa",
+    "index.json": "c221979a74238c62d545e7b8c27403f3ae13756f37f5b5caa90d5a9fbfc4db20",
+    "lunar_cn_chinese_en_daily_latest.ics": "a7a8df0aff8215e0b6137cb21c7456fec6dc286637d929a7a8253e74435d80cd",
+    "lunar_cn_chinese_en_festivals_latest.ics": "8e68687fc2f3785da754dc8042109c9d4fa983104346c71dcdbd34ba906b4325",
+    "lunar_cn_chinese_en_observances_latest.ics": "ada13b76d97b5ed09ab95f34196aa28e2cce0de002ca3cbfe629b7c378e61ab3",
+    "lunar_cn_chinese_zh-Hans_daily_latest.ics": "c12b0fb3746efb2c3ad7a97ef72a62bf827e92e55d7cf9652904e127b556a774",
+    "lunar_cn_chinese_zh-Hans_festivals_latest.ics": "ced685f26ef1d8f5297e18f674663cc8715a578a0cf05bc7fcdc849504de84d5",
+    "lunar_cn_chinese_zh-Hans_observances_latest.ics": "1997c48a2e6e43d8158772ed6693b2034256dc1e583a64b8c0ef77a72046bbe8"
+  }
+}
